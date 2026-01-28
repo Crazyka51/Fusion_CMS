@@ -1,10 +1,9 @@
-git/**
+/**
  * Articles repository - handles all database operations for articles
+ * Uses Neon template literal syntax for type safety
  */
 
 import { sql } from '../connection'
-import type { QueryParams } from '../utils'
-import { calculateOffset, buildOrderBy, buildSearchCondition } from '../utils'
 
 export interface Article {
   id: number
@@ -41,52 +40,25 @@ export interface ArticleWithRelations extends Article {
 }
 
 /**
- * Get all articles with pagination and filters
+ * Get all articles with optional filters
  */
-export async function getArticles(params: Partial<QueryParams> = {}) {
+export async function getArticles(options: {
+  search?: string
+  status?: string
+  category?: number
+  limit?: number
+  offset?: number
+} = {}) {
   const {
-    page = 1,
-    limit = 10,
     search,
     status,
     category,
-    sortBy = 'created_at',
-    sortOrder = 'desc'
-  } = params
+    limit = 10,
+    offset = 0
+  } = options
 
-  const offset = calculateOffset(page, limit)
-  const orderBy = buildOrderBy(sortBy, sortOrder)
-
-  // Build WHERE conditions
-  const conditions: string[] = []
-  const queryParams: any[] = []
-  let paramIndex = 1
-
-  if (status) {
-    conditions.push(`a.status = $${paramIndex}`)
-    queryParams.push(status)
-    paramIndex++
-  }
-
-  if (category) {
-    conditions.push(`a.category_id = $${paramIndex}`)
-    queryParams.push(parseInt(category))
-    paramIndex++
-  }
-
-  if (search) {
-    const searchCondition = buildSearchCondition(search, ['a.title', 'a.content', 'a.excerpt'])
-    if (searchCondition.condition) {
-      conditions.push(searchCondition.condition)
-      queryParams.push(...searchCondition.params.map(() => `%${search}%`))
-      paramIndex += searchCondition.params.length
-    }
-  }
-
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
-
-  // Get articles with relations
-  const articlesQuery = `
+  // Base query with relations
+  let query = sql`
     SELECT 
       a.*,
       c.id as category_id,
@@ -99,29 +71,188 @@ export async function getArticles(params: Partial<QueryParams> = {}) {
     FROM articles a
     LEFT JOIN categories c ON a.category_id = c.id
     LEFT JOIN admin_users u ON a.author_id = u.id
-    ${whereClause}
-    ${orderBy}
-    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
   `
 
-  queryParams.push(limit, offset)
+  // Apply filters dynamically
+  if (status && search && category) {
+    const searchPattern = `%${search}%`
+    query = sql`
+      SELECT 
+        a.*,
+        c.id as category_id,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.color as category_color,
+        u.id as author_id,
+        u.name as author_name,
+        u.email as author_email
+      FROM articles a
+      LEFT JOIN categories c ON a.category_id = c.id
+      LEFT JOIN admin_users u ON a.author_id = u.id
+      WHERE a.status = ${status}
+        AND a.category_id = ${category}
+        AND (a.title ILIKE ${searchPattern} OR a.content ILIKE ${searchPattern})
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  } else if (status && search) {
+    const searchPattern = `%${search}%`
+    query = sql`
+      SELECT 
+        a.*,
+        c.id as category_id,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.color as category_color,
+        u.id as author_id,
+        u.name as author_name,
+        u.email as author_email
+      FROM articles a
+      LEFT JOIN categories c ON a.category_id = c.id
+      LEFT JOIN admin_users u ON a.author_id = u.id
+      WHERE a.status = ${status}
+        AND (a.title ILIKE ${searchPattern} OR a.content ILIKE ${searchPattern})
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  } else if (status && category) {
+    query = sql`
+      SELECT 
+        a.*,
+        c.id as category_id,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.color as category_color,
+        u.id as author_id,
+        u.name as author_name,
+        u.email as author_email
+      FROM articles a
+      LEFT JOIN categories c ON a.category_id = c.id
+      LEFT JOIN admin_users u ON a.author_id = u.id
+      WHERE a.status = ${status} AND a.category_id = ${category}
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  } else if (status) {
+    query = sql`
+      SELECT 
+        a.*,
+        c.id as category_id,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.color as category_color,
+        u.id as author_id,
+        u.name as author_name,
+        u.email as author_email
+      FROM articles a
+      LEFT JOIN categories c ON a.category_id = c.id
+      LEFT JOIN admin_users u ON a.author_id = u.id
+      WHERE a.status = ${status}
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  } else if (search) {
+    const searchPattern = `%${search}%`
+    query = sql`
+      SELECT 
+        a.*,
+        c.id as category_id,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.color as category_color,
+        u.id as author_id,
+        u.name as author_name,
+        u.email as author_email
+      FROM articles a
+      LEFT JOIN categories c ON a.category_id = c.id
+      LEFT JOIN admin_users u ON a.author_id = u.id
+      WHERE a.title ILIKE ${searchPattern} OR a.content ILIKE ${searchPattern}
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  } else if (category) {
+    query = sql`
+      SELECT 
+        a.*,
+        c.id as category_id,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.color as category_color,
+        u.id as author_id,
+        u.name as author_name,
+        u.email as author_email
+      FROM articles a
+      LEFT JOIN categories c ON a.category_id = c.id
+      LEFT JOIN admin_users u ON a.author_id = u.id
+      WHERE a.category_id = ${category}
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  } else {
+    query = sql`
+      SELECT 
+        a.*,
+        c.id as category_id,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.color as category_color,
+        u.id as author_id,
+        u.name as author_name,
+        u.email as author_email
+      FROM articles a
+      LEFT JOIN categories c ON a.category_id = c.id
+      LEFT JOIN admin_users u ON a.author_id = u.id
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  }
 
-  const articles = await sql(articlesQuery, queryParams)
+  const articles = await query
 
-  // Get total count
-  const countQuery = `
-    SELECT COUNT(*) as total
-    FROM articles a
-    ${whereClause}
-  `
-  const countResult = await sql(countQuery, queryParams.slice(0, -2))
-  const total = parseInt(countResult[0]?.total || '0')
+  // Get total count with same filters
+  let countQuery
+  if (status && search && category) {
+    const searchPattern = `%${search}%`
+    countQuery = sql`
+      SELECT COUNT(*) as total FROM articles
+      WHERE status = ${status}
+        AND category_id = ${category}
+        AND (title ILIKE ${searchPattern} OR content ILIKE ${searchPattern})
+    `
+  } else if (status && search) {
+    const searchPattern = `%${search}%`
+    countQuery = sql`
+      SELECT COUNT(*) as total FROM articles
+      WHERE status = ${status}
+        AND (title ILIKE ${searchPattern} OR content ILIKE ${searchPattern})
+    `
+  } else if (status && category) {
+    countQuery = sql`
+      SELECT COUNT(*) as total FROM articles
+      WHERE status = ${status} AND category_id = ${category}
+    `
+  } else if (status) {
+    countQuery = sql`SELECT COUNT(*) as total FROM articles WHERE status = ${status}`
+  } else if (search) {
+    const searchPattern = `%${search}%`
+    countQuery = sql`
+      SELECT COUNT(*) as total FROM articles
+      WHERE title ILIKE ${searchPattern} OR content ILIKE ${searchPattern}
+    `
+  } else if (category) {
+    countQuery = sql`SELECT COUNT(*) as total FROM articles WHERE category_id = ${category}`
+  } else {
+    countQuery = sql`SELECT COUNT(*) as total FROM articles`
+  }
+
+  const countResult = await countQuery
+  const total = Number(countResult[0]?.total || 0)
 
   return {
     data: articles.map(formatArticleWithRelations),
     pagination: {
-      page,
       limit,
+      offset,
       total,
       totalPages: Math.ceil(total / limit)
     }
@@ -129,10 +260,10 @@ export async function getArticles(params: Partial<QueryParams> = {}) {
 }
 
 /**
- * Get article by ID
+ * Get article by ID with relations
  */
 export async function getArticleById(id: number): Promise<ArticleWithRelations | null> {
-  const result = await sql(`
+  const result = await sql`
     SELECT 
       a.*,
       c.id as category_id,
@@ -145,17 +276,17 @@ export async function getArticleById(id: number): Promise<ArticleWithRelations |
     FROM articles a
     LEFT JOIN categories c ON a.category_id = c.id
     LEFT JOIN admin_users u ON a.author_id = u.id
-    WHERE a.id = $1
-  `, [id])
+    WHERE a.id = ${id}
+  `
 
   return result.length > 0 ? formatArticleWithRelations(result[0]) : null
 }
 
 /**
- * Get article by slug
+ * Get article by slug with relations
  */
 export async function getArticleBySlug(slug: string): Promise<ArticleWithRelations | null> {
-  const result = await sql(`
+  const result = await sql`
     SELECT 
       a.*,
       c.id as category_id,
@@ -168,8 +299,8 @@ export async function getArticleBySlug(slug: string): Promise<ArticleWithRelatio
     FROM articles a
     LEFT JOIN categories c ON a.category_id = c.id
     LEFT JOIN admin_users u ON a.author_id = u.id
-    WHERE a.slug = $1
-  `, [slug])
+    WHERE a.slug = ${slug}
+  `
 
   return result.length > 0 ? formatArticleWithRelations(result[0]) : null
 }
@@ -178,90 +309,84 @@ export async function getArticleBySlug(slug: string): Promise<ArticleWithRelatio
  * Create new article
  */
 export async function createArticle(data: Partial<Article>) {
-  const result = await sql(`
+  const tags = JSON.stringify(data.tags || [])
+  
+  const result = await sql`
     INSERT INTO articles (
       title, slug, content, excerpt, status, category_id, author_id,
       featured_image, tags, meta_title, meta_description, published_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+      ${data.title},
+      ${data.slug},
+      ${data.content},
+      ${data.excerpt || null},
+      ${data.status || 'draft'},
+      ${data.category_id || null},
+      ${data.author_id},
+      ${data.featured_image || null},
+      ${tags},
+      ${data.meta_title || null},
+      ${data.meta_description || null},
+      ${data.published_at || null}
     )
     RETURNING *
-  `, [
-    data.title,
-    data.slug,
-    data.content,
-    data.excerpt || null,
-    data.status || 'draft',
-    data.category_id || null,
-    data.author_id,
-    data.featured_image || null,
-    JSON.stringify(data.tags || []),
-    data.meta_title || null,
-    data.meta_description || null,
-    data.published_at || null
-  ])
+  `
 
-  return result[0]
+  return result[0] as Article
 }
 
 /**
  * Update article
  */
 export async function updateArticle(id: number, data: Partial<Article>) {
-  const result = await sql(`
-    UPDATE articles SET
-      title = COALESCE($1, title),
-      slug = COALESCE($2, slug),
-      content = COALESCE($3, content),
-      excerpt = COALESCE($4, excerpt),
-      status = COALESCE($5, status),
-      category_id = COALESCE($6, category_id),
-      featured_image = COALESCE($7, featured_image),
-      tags = COALESCE($8, tags),
-      meta_title = COALESCE($9, meta_title),
-      meta_description = COALESCE($10, meta_description),
-      published_at = COALESCE($11, published_at),
-      updated_at = NOW()
-    WHERE id = $12
-    RETURNING *
-  `, [
-    data.title,
-    data.slug,
-    data.content,
-    data.excerpt,
-    data.status,
-    data.category_id,
-    data.featured_image,
-    data.tags ? JSON.stringify(data.tags) : null,
-    data.meta_title,
-    data.meta_description,
-    data.published_at,
-    id
-  ])
+  const current = await getArticleById(id)
+  if (!current) {
+    throw new Error('Article not found')
+  }
 
-  return result[0]
+  const tags = data.tags ? JSON.stringify(data.tags) : JSON.stringify(current.tags)
+
+  const result = await sql`
+    UPDATE articles SET
+      title = ${data.title ?? current.title},
+      slug = ${data.slug ?? current.slug},
+      content = ${data.content ?? current.content},
+      excerpt = ${data.excerpt ?? current.excerpt},
+      status = ${data.status ?? current.status},
+      category_id = ${data.category_id ?? current.category_id},
+      featured_image = ${data.featured_image ?? current.featured_image},
+      tags = ${tags},
+      meta_title = ${data.meta_title ?? current.meta_title},
+      meta_description = ${data.meta_description ?? current.meta_description},
+      published_at = ${data.published_at ?? current.published_at},
+      updated_at = NOW()
+    WHERE id = ${id}
+    RETURNING *
+  `
+
+  return result[0] as Article
 }
 
 /**
  * Delete article
  */
 export async function deleteArticle(id: number): Promise<boolean> {
-  const result = await sql('DELETE FROM articles WHERE id = $1', [id])
-  return result.length > 0
+  await sql`DELETE FROM articles WHERE id = ${id}`
+  return true
 }
 
 /**
  * Increment view count
  */
 export async function incrementViewCount(id: number) {
-  await sql('UPDATE articles SET view_count = view_count + 1 WHERE id = $1', [id])
+  await sql`UPDATE articles SET view_count = view_count + 1 WHERE id = ${id}`
 }
 
 /**
  * Get article statistics
  */
 export async function getArticleStats() {
-  const result = await sql(`
+  const result = await sql`
     SELECT 
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE status = 'published') as published,
@@ -269,9 +394,15 @@ export async function getArticleStats() {
       COUNT(*) FILTER (WHERE status = 'archived') as archived,
       SUM(view_count) as total_views
     FROM articles
-  `)
+  `
 
-  return result[0]
+  return {
+    total: Number(result[0]?.total || 0),
+    published: Number(result[0]?.published || 0),
+    draft: Number(result[0]?.draft || 0),
+    archived: Number(result[0]?.archived || 0),
+    totalViews: Number(result[0]?.total_views || 0)
+  }
 }
 
 /**

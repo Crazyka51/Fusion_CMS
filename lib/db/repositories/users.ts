@@ -1,10 +1,9 @@
 /**
  * Users repository - handles all database operations for admin users
+ * Uses Neon template literal syntax for type safety
  */
 
 import { sql } from '../connection'
-import type { QueryParams } from '../utils'
-import { calculateOffset, buildOrderBy, buildSearchCondition } from '../utils'
 
 export interface AdminUser {
   id: number
@@ -20,58 +19,49 @@ export interface AdminUser {
 export interface AdminUserSafe extends Omit<AdminUser, 'password_hash'> {}
 
 /**
- * Get all users with pagination
+ * Get all users with optional search and pagination
  */
-export async function getUsers(params: Partial<QueryParams> = {}) {
-  const {
-    page = 1,
-    limit = 10,
-    search,
-    sortBy = 'created_at',
-    sortOrder = 'desc'
-  } = params
-
-  const offset = calculateOffset(page, limit)
-  const orderBy = buildOrderBy(sortBy, sortOrder)
-
-  const conditions: string[] = []
-  const queryParams: any[] = []
-  let paramIndex = 1
+export async function getUsers(options: {
+  search?: string
+  limit?: number
+  offset?: number
+} = {}) {
+  const { search, limit = 10, offset = 0 } = options
 
   if (search) {
-    const searchCondition = buildSearchCondition(search, ['name', 'email'])
-    if (searchCondition.condition) {
-      conditions.push(searchCondition.condition)
-      queryParams.push(...searchCondition.params.map(() => `%${search}%`))
-      paramIndex += searchCondition.params.length
+    const searchPattern = `%${search}%`
+    const users = await sql`
+      SELECT id, email, name, role, permissions, created_at, updated_at
+      FROM admin_users
+      WHERE name ILIKE ${searchPattern} OR email ILIKE ${searchPattern}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+    
+    const countResult = await sql`
+      SELECT COUNT(*) as total
+      FROM admin_users
+      WHERE name ILIKE ${searchPattern} OR email ILIKE ${searchPattern}
+    `
+    
+    return {
+      data: users as AdminUserSafe[],
+      total: Number(countResult[0]?.total || 0)
     }
   }
 
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
-
-  const usersQuery = `
+  const users = await sql`
     SELECT id, email, name, role, permissions, created_at, updated_at
     FROM admin_users
-    ${whereClause}
-    ${orderBy}
-    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    ORDER BY created_at DESC
+    LIMIT ${limit} OFFSET ${offset}
   `
-
-  queryParams.push(limit, offset)
-  const users = await sql(usersQuery, queryParams)
-
-  const countQuery = `SELECT COUNT(*) as total FROM admin_users ${whereClause}`
-  const countResult = await sql(countQuery, queryParams.slice(0, -2))
-  const total = parseInt(countResult[0]?.total || '0')
-
+  
+  const countResult = await sql`SELECT COUNT(*) as total FROM admin_users`
+  
   return {
-    data: users,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit)
-    }
+    data: users as AdminUserSafe[],
+    total: Number(countResult[0]?.total || 0)
   }
 }
 
@@ -79,19 +69,20 @@ export async function getUsers(params: Partial<QueryParams> = {}) {
  * Get user by ID (without password)
  */
 export async function getUserById(id: number): Promise<AdminUserSafe | null> {
-  const result = await sql(
-    'SELECT id, email, name, role, permissions, created_at, updated_at FROM admin_users WHERE id = $1',
-    [id]
-  )
-  return result.length > 0 ? result[0] : null
+  const result = await sql`
+    SELECT id, email, name, role, permissions, created_at, updated_at 
+    FROM admin_users 
+    WHERE id = ${id}
+  `
+  return result.length > 0 ? (result[0] as AdminUserSafe) : null
 }
 
 /**
  * Get user by email (with password for authentication)
  */
 export async function getUserByEmail(email: string): Promise<AdminUser | null> {
-  const result = await sql('SELECT * FROM admin_users WHERE email = $1', [email])
-  return result.length > 0 ? result[0] : null
+  const result = await sql`SELECT * FROM admin_users WHERE email = ${email}`
+  return result.length > 0 ? (result[0] as AdminUser) : null
 }
 
 /**
@@ -104,56 +95,73 @@ export async function createUser(data: {
   role?: string
   permissions?: string[]
 }): Promise<AdminUserSafe> {
-  const result = await sql(
-    `INSERT INTO admin_users (email, name, password_hash, role, permissions)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, email, name, role, permissions, created_at, updated_at`,
-    [
-      data.email,
-      data.name,
-      data.password_hash,
-      data.role || 'user',
-      JSON.stringify(data.permissions || [])
-    ]
-  )
-  return result[0]
+  const role = data.role || 'user'
+  const permissions = JSON.stringify(data.permissions || [])
+  
+  const result = await sql`
+    INSERT INTO admin_users (email, name, password_hash, role, permissions)
+    VALUES (${data.email}, ${data.name}, ${data.password_hash}, ${role}, ${permissions})
+    RETURNING id, email, name, role, permissions, created_at, updated_at
+  `
+  return result[0] as AdminUserSafe
 }
 
 /**
- * Update user
+ * Update user (only provided fields)
  */
 export async function updateUser(
   id: number,
   data: Partial<Omit<AdminUser, 'id' | 'created_at' | 'updated_at'>>
 ): Promise<AdminUserSafe> {
-  const result = await sql(
-    `UPDATE admin_users SET
-      email = COALESCE($1, email),
-      name = COALESCE($2, name),
-      password_hash = COALESCE($3, password_hash),
-      role = COALESCE($4, role),
-      permissions = COALESCE($5, permissions),
-      updated_at = NOW()
-    WHERE id = $6
-    RETURNING id, email, name, role, permissions, created_at, updated_at`,
-    [
-      data.email,
-      data.name,
-      data.password_hash,
-      data.role,
-      data.permissions ? JSON.stringify(data.permissions) : null,
-      id
-    ]
-  )
-  return result[0]
+  // Get current user
+  const current = await getUserById(id)
+  if (!current) {
+    throw new Error('User not found')
+  }
+
+  // Build updated values
+  const email = data.email ?? current.email
+  const name = data.name ?? current.name
+  const role = data.role ?? current.role
+  const permissions = data.permissions 
+    ? JSON.stringify(data.permissions) 
+    : JSON.stringify(current.permissions)
+  
+  // Update password only if provided
+  if (data.password_hash) {
+    const result = await sql`
+      UPDATE admin_users SET
+        email = ${email},
+        name = ${name},
+        password_hash = ${data.password_hash},
+        role = ${role},
+        permissions = ${permissions},
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING id, email, name, role, permissions, created_at, updated_at
+    `
+    return result[0] as AdminUserSafe
+  } else {
+    const result = await sql`
+      UPDATE admin_users SET
+        email = ${email},
+        name = ${name},
+        role = ${role},
+        permissions = ${permissions},
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING id, email, name, role, permissions, created_at, updated_at
+    `
+    return result[0] as AdminUserSafe
+  }
 }
 
 /**
  * Delete user
  */
 export async function deleteUser(id: number): Promise<boolean> {
-  const result = await sql('DELETE FROM admin_users WHERE id = $1', [id])
-  return result.length > 0
+  await sql`DELETE FROM admin_users WHERE id = ${id}`
+  return true
 }
 
 /**
@@ -167,4 +175,23 @@ export function hasPermission(user: AdminUser | AdminUserSafe, permission: strin
     : user.permissions
     
   return permissions.includes(permission)
+}
+
+/**
+ * Get user statistics
+ */
+export async function getUserStats() {
+  const result = await sql`
+    SELECT 
+      COUNT(*) as total,
+      COUNT(*) FILTER (WHERE role = 'admin') as admins,
+      COUNT(*) FILTER (WHERE role = 'user') as users
+    FROM admin_users
+  `
+  
+  return {
+    total: Number(result[0]?.total || 0),
+    admins: Number(result[0]?.admins || 0),
+    users: Number(result[0]?.users || 0)
+  }
 }

@@ -16,6 +16,7 @@ export interface JWTPayload {
   email: string
   role: string
   permissions: string[]
+  [key: string]: any // Allow additional properties for jose compatibility
 }
 
 /**

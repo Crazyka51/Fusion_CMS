@@ -1,9 +1,10 @@
 /**
  * Categories repository - handles all database operations for categories
- * Uses Neon template literal syntax for type safety
  */
 
 import { sql } from '../connection'
+import type { QueryParams } from '../utils'
+import { calculateOffset, buildOrderBy } from '../utils'
 
 export interface Category {
   id: number
@@ -24,78 +25,91 @@ export interface CategoryWithCount extends Category {
 /**
  * Get all categories with article counts
  */
-export async function getCategories(options: {
-  limit?: number
-  offset?: number
-} = {}) {
-  const { limit = 50, offset = 0 } = options
+export async function getCategories(params: Partial<QueryParams> = {}) {
+  const {
+    page = 1,
+    limit = 50,
+    sortBy = 'name',
+    sortOrder = 'asc'
+  } = params
 
-  const categories = await sql`
+  const offset = calculateOffset(page, limit)
+  const orderBy = buildOrderBy(sortBy, sortOrder)
+
+  const query = `
     SELECT 
       c.*,
-      COUNT(a.id)::int as article_count
+      COUNT(a.id) as article_count
     FROM categories c
     LEFT JOIN articles a ON c.id = a.category_id
     GROUP BY c.id
-    ORDER BY c.name ASC
-    LIMIT ${limit} OFFSET ${offset}
+    ${orderBy}
+    LIMIT $1 OFFSET $2
   `
 
-  const countResult = await sql`SELECT COUNT(*) as total FROM categories`
+  const categories = await sql(query, [limit, offset])
+
+  const countResult = await sql('SELECT COUNT(*) as total FROM categories')
+  const total = parseInt(countResult[0]?.total || '0')
 
   return {
-    data: categories as CategoryWithCount[],
-    total: Number(countResult[0]?.total || 0)
+    data: categories,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
   }
 }
 
 /**
- * Get category by ID with article count
+ * Get category by ID
  */
 export async function getCategoryById(id: number): Promise<CategoryWithCount | null> {
-  const result = await sql`
+  const result = await sql(`
     SELECT 
       c.*,
-      COUNT(a.id)::int as article_count
+      COUNT(a.id) as article_count
     FROM categories c
     LEFT JOIN articles a ON c.id = a.category_id
-    WHERE c.id = ${id}
+    WHERE c.id = $1
     GROUP BY c.id
-  `
+  `, [id])
 
-  return result.length > 0 ? (result[0] as CategoryWithCount) : null
+  return result.length > 0 ? result[0] : null
 }
 
 /**
- * Get category by slug with article count
+ * Get category by slug
  */
 export async function getCategoryBySlug(slug: string): Promise<CategoryWithCount | null> {
-  const result = await sql`
+  const result = await sql(`
     SELECT 
       c.*,
-      COUNT(a.id)::int as article_count
+      COUNT(a.id) as article_count
     FROM categories c
     LEFT JOIN articles a ON c.id = a.category_id
-    WHERE c.slug = ${slug}
+    WHERE c.slug = $1
     GROUP BY c.id
-  `
+  `, [slug])
 
-  return result.length > 0 ? (result[0] as CategoryWithCount) : null
+  return result.length > 0 ? result[0] : null
 }
 
 /**
  * Get hierarchical categories (parent with children)
  */
 export async function getCategoriesHierarchical() {
-  const allCategories = await sql`
+  const allCategories = await sql(`
     SELECT 
       c.*,
-      COUNT(a.id)::int as article_count
+      COUNT(a.id) as article_count
     FROM categories c
     LEFT JOIN articles a ON c.id = a.category_id
     GROUP BY c.id
     ORDER BY c.name ASC
-  `
+  `)
 
   // Build hierarchy
   const categoriesMap = new Map()
@@ -124,80 +138,79 @@ export async function getCategoriesHierarchical() {
  * Create new category
  */
 export async function createCategory(data: Partial<Category>) {
-  const result = await sql`
+  const result = await sql(`
     INSERT INTO categories (name, slug, description, parent_id, color, image)
-    VALUES (
-      ${data.name}, 
-      ${data.slug}, 
-      ${data.description || null}, 
-      ${data.parent_id || null}, 
-      ${data.color || '#6b7280'}, 
-      ${data.image || null}
-    )
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *
-  `
+  `, [
+    data.name,
+    data.slug,
+    data.description || null,
+    data.parent_id || null,
+    data.color || '#6b7280',
+    data.image || null
+  ])
 
-  return result[0] as Category
+  return result[0]
 }
 
 /**
  * Update category
  */
 export async function updateCategory(id: number, data: Partial<Category>) {
-  // Get current category
-  const current = await getCategoryById(id)
-  if (!current) {
-    throw new Error('Category not found')
-  }
-
-  const result = await sql`
+  const result = await sql(`
     UPDATE categories SET
-      name = ${data.name ?? current.name},
-      slug = ${data.slug ?? current.slug},
-      description = ${data.description ?? current.description},
-      parent_id = ${data.parent_id ?? current.parent_id},
-      color = ${data.color ?? current.color},
-      image = ${data.image ?? current.image},
+      name = COALESCE($1, name),
+      slug = COALESCE($2, slug),
+      description = COALESCE($3, description),
+      parent_id = COALESCE($4, parent_id),
+      color = COALESCE($5, color),
+      image = COALESCE($6, image),
       updated_at = NOW()
-    WHERE id = ${id}
+    WHERE id = $7
     RETURNING *
-  `
+  `, [
+    data.name,
+    data.slug,
+    data.description,
+    data.parent_id,
+    data.color,
+    data.image,
+    id
+  ])
 
-  return result[0] as Category
+  return result[0]
 }
 
 /**
- * Delete category (only if no articles)
+ * Delete category
  */
 export async function deleteCategory(id: number): Promise<boolean> {
   // Check if category has articles
-  const articlesCount = await sql`
-    SELECT COUNT(*) as count FROM articles WHERE category_id = ${id}
-  `
+  const articlesCount = await sql(
+    'SELECT COUNT(*) as count FROM articles WHERE category_id = $1',
+    [id]
+  )
 
-  if (Number(articlesCount[0]?.count || 0) > 0) {
+  if (parseInt(articlesCount[0]?.count || '0') > 0) {
     throw new Error('Cannot delete category with articles')
   }
 
-  await sql`DELETE FROM categories WHERE id = ${id}`
-  return true
+  const result = await sql('DELETE FROM categories WHERE id = $1', [id])
+  return result.length > 0
 }
 
 /**
  * Get category statistics
  */
 export async function getCategoryStats() {
-  const result = await sql`
+  const result = await sql(`
     SELECT 
       COUNT(*) as total_categories,
       COUNT(*) FILTER (WHERE parent_id IS NULL) as root_categories,
       COUNT(*) FILTER (WHERE parent_id IS NOT NULL) as sub_categories
     FROM categories
-  `
+  `)
 
-  return {
-    total: Number(result[0]?.total_categories || 0),
-    root: Number(result[0]?.root_categories || 0),
-    sub: Number(result[0]?.sub_categories || 0)
-  }
+  return result[0]
 }

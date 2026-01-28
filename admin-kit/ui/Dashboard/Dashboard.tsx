@@ -94,7 +94,7 @@ const defaultWidgets: DashboardWidget[] = [
       period: "tento měsíc"
     },
     color: "warning"
-  }
+  },
   {
     id: "users",
     title: "Total Users",
