@@ -122,4 +122,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Disable white hover effect on Recharts bars */
+  .recharts-bar-rectangle:hover,
+  .recharts-bar-rectangle:focus {
+    fill: oklch(0.60 0.12 160) !important;
+    opacity: 1 !important;
+  }
+  
+  .recharts-active-bar rect {
+    fill: oklch(0.60 0.12 160) !important;
+  }
 }

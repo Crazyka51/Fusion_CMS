@@ -188,4 +188,15 @@
   .sidebar-item:hover {
     color: #a1a0a0;
   }
+
+  /* Disable white hover effect on Recharts bars */
+  .recharts-bar-rectangle:hover,
+  .recharts-bar-rectangle:focus {
+    fill: inherit !important;
+    opacity: 1 !important;
+  }
+  
+  .recharts-active-bar {
+    fill: inherit !important;
+  }
 }

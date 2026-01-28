@@ -547,13 +547,14 @@ export function Dashboard({
                   }}
                   labelStyle={{ color: 'oklch(0.85 0 0)' }}
                   formatter={(value) => [`${value} zobrazení`, 'Návštěvy']}
+                  cursor={false}
                 />
+
                 <Bar 
                   dataKey="views" 
                   fill="oklch(0.60 0.12 160)"
                   radius={[8, 8, 0, 0]}
                   animationDuration={1000}
-                  activeBar={false}
                 />
               </BarChart>
             </ResponsiveContainer>
