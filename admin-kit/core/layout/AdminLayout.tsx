@@ -61,6 +61,13 @@ const defaultNavigation: NavigationItem[] = [
     permission: "posts.read",
   },
   {
+    id: "categories",
+    label: "Kategorie",
+    href: "/admin/categories",
+    icon: "Tag",
+    permission: "posts.read",
+  },
+  {
     id: "media",
     label: "Média",
     href: "/admin/media",
