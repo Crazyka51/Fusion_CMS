@@ -330,7 +330,7 @@ export default function AdminDashboard({ onCreateNew, onViewArticles, onEditArti
                   >
                     {article.imageUrl && (
                       <Image
-                        src={article.imageUrl || "/placeholder.svg"}
+                        src={article.imageUrl || "/zajac.jpg"}
                         alt={article.title}
                         width={64}
                         height={64}

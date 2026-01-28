@@ -12,7 +12,7 @@ interface AdminPageResult {
 export async function getAdminPage(
   slug: string[],
   context: GetServerSidePropsContext,
-  modules: AdminModule[] = defaultModules,
+  modules: any[] = defaultModules,
 ): Promise<AdminPageResult> {
   const authMiddleware = new AdminAuthMiddleware()
   const pathname = `/admin/${slug.join("/")}`
@@ -50,7 +50,7 @@ export async function getAdminPage(
 
   // Check module permissions
   if (module.permissions && user) {
-    const hasPermission = module.permissions.some((permission) => user.permissions?.includes(permission))
+    const hasPermission = module.permissions.some((permission: string) => user.permissions?.includes(permission))
     if (!hasPermission) {
       return {
         pageComponent: "AccessDenied",

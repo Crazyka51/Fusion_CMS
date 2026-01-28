@@ -361,6 +361,7 @@ export function CategoryManager() {
                   value={formData.color}
                   onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
                   className="w-10 h-10 rounded border border-border cursor-pointer"
+                  aria-label="Výběr barvy kategorie"
                 />
                 <Input
                   value={formData.color}

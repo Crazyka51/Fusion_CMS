@@ -1,7 +1,7 @@
 // Advanced Admin Efficiency Implementation
 // Real solutions for cognitive load and workflow optimization
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 
 // Types for efficiency hooks
 export interface Command {
@@ -153,11 +153,11 @@ export function useSmartAutoSave<T>(
     
     const indicator = getIndicator()
     
-    return (
-      <div className={`text-sm ${indicator.color} flex items-center space-x-1`}>
-        <span>{indicator.icon}</span>
-        <span>{indicator.text}</span>
-      </div>
+    return React.createElement(
+      'div',
+      { className: `text-sm ${indicator.color} flex items-center space-x-1` },
+      React.createElement('span', null, indicator.icon),
+      React.createElement('span', null, indicator.text)
     )
   }
   
@@ -184,7 +184,11 @@ export function useProgressiveForm<T>(steps: FormStep<T>[], initialData: T) {
   
   const nextStep = () => {
     if (canProceed && !isLastStep) {
-      setCompletedSteps(prev => new Set([...prev, currentStep]))
+      setCompletedSteps(prev => {
+        const newSet = new Set(prev)
+        newSet.add(currentStep)
+        return newSet
+      })
       setCurrentStep(prev => prev + 1)
     }
   }
@@ -202,31 +206,36 @@ export function useProgressiveForm<T>(steps: FormStep<T>[], initialData: T) {
   }
   
   // Progress indicator
-  const ProgressIndicator = () => (
-    <div className="flex items-center space-x-2 mb-6">
-      {steps.map((step, index) => (
-        <div key={index} className="flex items-center">
-          <button
-            onClick={() => jumpToStep(index)}
-            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-colors ${
-              index === currentStep
-                ? 'border-blue-500 bg-blue-500 text-white'
-                : completedSteps.has(index)
-                ? 'border-green-500 bg-green-500 text-white'
-                : 'border-gray-300 text-gray-500 hover:border-gray-400'
-            }`}
-          >
-            {completedSteps.has(index) ? '✓' : index + 1}
-          </button>
-          {index < steps.length - 1 && (
-            <div className={`w-8 h-0.5 ${
-              completedSteps.has(index) ? 'bg-green-500' : 'bg-gray-300'
-            }`} />
-          )}
-        </div>
-      ))}
-    </div>
-  )
+  const ProgressIndicator = () => {
+    return React.createElement(
+      'div',
+      { className: 'flex items-center space-x-2 mb-6' },
+      steps.map((step, index) =>
+        React.createElement(
+          'div',
+          { key: index, className: 'flex items-center' },
+          React.createElement(
+            'button',
+            {
+              onClick: () => jumpToStep(index),
+              className: `w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-colors ${
+                index === currentStep
+                  ? 'border-blue-500 bg-blue-500 text-white'
+                  : completedSteps.has(index)
+                  ? 'border-green-500 bg-green-500 text-white'
+                  : 'border-gray-300 text-gray-500 hover:border-gray-400'
+              }`
+            },
+            completedSteps.has(index) ? '✓' : index + 1
+          ),
+          index < steps.length - 1 &&
+            React.createElement('div', {
+              className: `w-8 h-0.5 ${completedSteps.has(index) ? 'bg-green-500' : 'bg-gray-300'}`
+            })
+        )
+      )
+    )
+  }
   
   return {
     currentStep: currentStepData,
@@ -370,15 +379,6 @@ function formatTime(date: Date | null): string {
 function validateStep<T>(step: FormStep<T>, data: T): boolean {
   // Implementation depends on step validation rules
   return true
-}
-
-interface FormStep<T> {
-  id: string
-  title: string
-  description?: string
-  fields: string[]
-  validation: (data: T) => boolean
-  optional?: boolean
 }
 
 export default {

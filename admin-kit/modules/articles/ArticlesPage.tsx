@@ -115,6 +115,7 @@ export function ArticlesPage() {
 
   const actions = [
     {
+      id: "view",
       label: "Zobrazit",
       icon: Eye,
       onClick: (item: Article) => {
@@ -123,6 +124,7 @@ export function ArticlesPage() {
       },
     },
     {
+      id: "edit",
       label: "Upravit",
       icon: Edit,
       onClick: (item: Article) => {
@@ -131,6 +133,7 @@ export function ArticlesPage() {
       },
     },
     {
+      id: "delete",
       label: "Smazat",
       icon: Trash2,
       variant: "destructive" as const,
@@ -273,16 +276,7 @@ export function ArticlesPage() {
       <TableViewer
         columns={columns}
         apiEndpoint="/admin/articles"
-        searchQuery={searchTerm}
-        filters={{ status: statusFilter !== "all" ? statusFilter : undefined }}
         actions={actions}
-        bulkActions={[
-          { label: "Publikovat", value: "publish" },
-          { label: "Zrušit publikování", value: "unpublish" },
-          { label: "Archivovat", value: "archive" },
-          { label: "Smazat", value: "delete", variant: "destructive" },
-        ]}
-        onBulkAction={handleBulkAction}
         selectable={true}
         pageSize={15}
       />

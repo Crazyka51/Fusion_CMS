@@ -1,7 +1,7 @@
 // API handler for articles
 import type { NextRequest } from "next/server"
-import { ArticleModel } from "../../modules/articles/ArticleModel"
-import { authenticateApiRequest } from "../auth/middleware"
+import { ArticleModel } from "../modules/articles/ArticleModel"
+import { authenticateApiRequest } from "../core/auth/middleware"
 
 const articleModel = new ArticleModel()
 

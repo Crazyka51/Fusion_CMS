@@ -23,7 +23,18 @@ export async function signJWT(payload: Omit<JWTPayload, "iat" | "exp">): Promise
 export async function verifyJWT(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, secret)
-    return payload as JWTPayload
+    
+    // Validate required fields
+    if (
+      !payload.userId || 
+      !payload.email || 
+      !payload.role || 
+      !Array.isArray(payload.permissions)
+    ) {
+      return null
+    }
+    
+    return payload as unknown as JWTPayload
   } catch (error) {
     console.error("JWT verification failed:", error)
     return null

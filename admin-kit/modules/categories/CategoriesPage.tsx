@@ -1,6 +1,9 @@
+/* eslint-disable @next/next/no-inline-styles */
 "use client"
 
 import { useState, useEffect } from "react"
+import styles from "./CategoriesPage.module.css"
+import { CategoryColorDot } from "./CategoryColorDot"
 import { TableViewer } from "../../ui/TableViewer"
 import { Button } from "../../../components/ui/button"
 import { Input } from "../../../components/ui/input"
@@ -58,10 +61,7 @@ export function CategoriesPage() {
       sortable: true,
       render: (value, row: Category) => (
         <div className="flex items-center space-x-3">
-          <div 
-            className="w-4 h-4 rounded-full flex-shrink-0"
-            style={{ backgroundColor: row.color }}
-          />
+          <CategoryColorDot color={row.color} />
           <div className="flex items-center space-x-2">
             {row.parentId ? (
               <FolderOpen className="h-4 w-4 text-muted-foreground" />
@@ -376,12 +376,7 @@ export function CategoriesPage() {
       <TableViewer
         columns={columns}
         apiEndpoint="/admin/categories"
-        searchQuery={searchTerm}
         actions={actions}
-        bulkActions={[
-          { label: "Smazat", value: "delete", variant: "destructive" },
-        ]}
-        onBulkAction={handleBulkAction}
         selectable={true}
         pageSize={15}
       />

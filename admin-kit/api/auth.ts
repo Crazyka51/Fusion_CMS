@@ -45,6 +45,16 @@ export async function handleLogin(request: NextRequest): Promise<NextResponse> {
       )
     }
 
+    if (!validation.data) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid input data",
+        },
+        { status: 400 },
+      )
+    }
+
     const { email, password } = validation.data
 
     // Find user
@@ -73,8 +83,8 @@ export async function handleLogin(request: NextRequest): Promise<NextResponse> {
     const token = await signJWT({
       userId: user.id,
       email: user.email,
-      role: user.role,
-      permissions: user.permissions,
+      role: user.role || "editor",
+      permissions: user.permissions || [],
     })
 
     const response = NextResponse.json({

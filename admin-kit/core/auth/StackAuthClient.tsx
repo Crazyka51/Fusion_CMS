@@ -6,7 +6,7 @@ import { getStackAuthClientConfig } from "./stack-auth"
 export function StackAuthClient() {
   const config = getStackAuthClientConfig()
 
-  if (!config.projectId || !config.publishableKey) {
+  if (!config.projectId) {
     return <div>Stack Auth not configured</div>
   }
 

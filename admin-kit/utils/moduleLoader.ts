@@ -31,7 +31,12 @@ export class ModuleLoader {
 
   // Preload modules for better performance
   async preloadModules(modules: AdminModule[]) {
-    const loadPromises = modules.map((module) => this.loadModule(module.component as string))
+    const loadPromises = modules.map((module) => {
+      if (typeof module.component === 'string') {
+        return this.loadModule(module.component)
+      }
+      return Promise.resolve(null)
+    })
     await Promise.allSettled(loadPromises)
   }
 

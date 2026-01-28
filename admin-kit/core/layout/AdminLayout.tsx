@@ -35,6 +35,7 @@ import {
   Folder,
   Database,
   Mail,
+  BarChart3,
 } from "lucide-react"
 import { useAdmin } from "../context/AdminProvider"
 import { useAuth } from "../auth/AuthProvider"
@@ -73,6 +74,13 @@ const defaultNavigation: NavigationItem[] = [
     href: "/admin/media",
     icon: "Image",
     permission: "media.read",
+  },
+  {
+    id: "analytics",
+    label: "Analytika",
+    href: "/admin/analytics",
+    icon: "BarChart3",
+    permission: "analytics.read",
   },
   {
     id: "users",
@@ -284,7 +292,7 @@ export function AdminLayout({ children, navigation = defaultNavigation, classNam
         <div className="p-4 border-t">
           <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.avatar || "/placeholder.svg"} />
+              <AvatarImage src={user.avatar || "/zajac.jpg"} />
               <AvatarFallback>{user.name?.charAt(0) || user.email.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -375,7 +383,7 @@ export function AdminLayout({ children, navigation = defaultNavigation, classNam
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                          <AvatarImage src={user.avatar || "/zajac.jpg"} />
                           <AvatarFallback>{user.name?.charAt(0) || user.email.charAt(0)}</AvatarFallback>
                         </Avatar>
                       </Button>

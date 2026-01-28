@@ -1,4 +1,4 @@
-import type { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { authenticateApiRequest, requirePermission } from "../core/auth/middleware"
 import { handleLogin, handleLogout, handleSession } from "./auth"
 import { createCrudHandlers } from "./crud"

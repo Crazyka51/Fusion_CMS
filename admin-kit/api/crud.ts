@@ -1,4 +1,4 @@
-import type { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { requirePermission } from "../core/auth/middleware"
 import type { ApiResponse, AdminUser } from "../core/types"
 
@@ -172,6 +172,7 @@ async function handleCreate(request: NextRequest, user: AdminUser, options: Crud
       return new NextResponse(
         JSON.stringify({
           success: false,
+          data: null,
           message: "Validation failed",
           errors: validation.errors,
         } as ApiResponse),
@@ -240,6 +241,7 @@ async function handleUpdate(
       return new NextResponse(
         JSON.stringify({
           success: false,
+          data: null,
           message: "Validation failed",
           errors: validation.errors,
         } as ApiResponse),

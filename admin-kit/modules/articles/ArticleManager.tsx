@@ -126,7 +126,7 @@ export default function ArticleManager({ onEditArticle, onCreateNew }: ArticleMa
           </h1>
           <p className="text-muted-foreground">Spravujte publikované články a koncepty</p>
         </div>
-        <Button onClick={onCreateNew} size="lg">
+        <Button onClick={() => onCreateNew ? onCreateNew() : window.location.href = '/admin/articles/new'} size="lg">
           <Plus className="h-4 w-4 mr-2" />
           Nový článek
         </Button>

@@ -370,7 +370,7 @@ export default function Dashboard({ onCreateNew = () => {}, onViewArticles = () 
                   >
                     {article.imageUrl && (
                       <img
-                        src={article.imageUrl || "/placeholder.svg"}
+                        src={article.imageUrl || "/zajac.jpg"}
                         alt={article.title}
                         className="w-16 h-16 object-cover rounded-lg"
                       />

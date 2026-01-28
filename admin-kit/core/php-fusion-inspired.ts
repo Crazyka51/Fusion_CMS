@@ -21,6 +21,7 @@ export const enhancedAdminConfig: Partial<AdminConfig> = {
     {
       id: "content-group",
       label: "Správa obsahu",
+      href: "#",
       icon: "FileText",
       children: [
         {
@@ -51,6 +52,7 @@ export const enhancedAdminConfig: Partial<AdminConfig> = {
     {
       id: "users-group",
       label: "Uživatelé",
+      href: "#",
       icon: "Users", 
       children: [
         {
@@ -74,6 +76,7 @@ export const enhancedAdminConfig: Partial<AdminConfig> = {
     {
       id: "communication-group",
       label: "Komunikace",
+      href: "#",
       icon: "Mail",
       children: [
         {
@@ -97,6 +100,7 @@ export const enhancedAdminConfig: Partial<AdminConfig> = {
     {
       id: "analytics-group", 
       label: "Analytika",
+      href: "#",
       icon: "BarChart3",
       children: [
         {
@@ -119,7 +123,8 @@ export const enhancedAdminConfig: Partial<AdminConfig> = {
     // System Group
     {
       id: "system-group",
-      label: "Systém", 
+      label: "Systém",
+      href: "#",
       icon: "Settings",
       children: [
         {

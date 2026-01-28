@@ -165,7 +165,7 @@ export function TableViewer({
       case "date":
         return value ? new Date(value).toLocaleDateString() : "-"
       case "image":
-        return value ? <img src={value || "/placeholder.svg"} alt="" className="h-8 w-8 rounded object-cover" /> : "-"
+        return value ? <img src={value || "/zajac.jpg"} alt="" className="h-8 w-8 rounded object-cover" /> : "-"
       case "number":
         return typeof value === "number" ? value.toLocaleString() : value
       default:
