@@ -123,14 +123,14 @@
     @apply bg-background text-foreground;
   }
   
-  /* Disable white hover effect on Recharts bars */
+  /* Disable hover effect on Recharts bars - no color change */
   .recharts-bar-rectangle:hover,
   .recharts-bar-rectangle:focus {
-    fill: oklch(0.60 0.12 160) !important;
-    opacity: 1 !important;
+    fill: inherit !important;
+    opacity: inherit !important;
   }
   
   .recharts-active-bar rect {
-    fill: oklch(0.60 0.12 160) !important;
+    fill: inherit !important;
   }
 }

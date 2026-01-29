@@ -372,6 +372,7 @@ export function EnhancedDashboard() {
                       dataKey="views"
                       fill="oklch(0.60 0.12 160)"
                       radius={[8, 8, 0, 0]}
+                      isAnimationActive={false}
                     />
                   </BarChart>
                 </ResponsiveContainer>

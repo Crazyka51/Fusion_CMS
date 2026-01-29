@@ -10,21 +10,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const authMiddleware = new AdminAuthMiddleware({
-    publicPaths: ["/admin/login"],
-    loginPath: "/admin/login",
-  })
+  // Authentication disabled - allow all admin routes without login
+  // const authMiddleware = new AdminAuthMiddleware({
+  //   publicPaths: ["/admin/login"],
+  //   loginPath: "/admin/login",
+  // })
 
-  // Check if route requires authentication
-  if (authMiddleware.requiresAuth(pathname)) {
-    const user = await authMiddleware.authenticate(request)
+  // // Check if route requires authentication
+  // if (authMiddleware.requiresAuth(pathname)) {
+  //   const user = await authMiddleware.authenticate(request)
 
-    if (!user) {
-      // Redirect to login with return URL
-      const loginUrl = authMiddleware.getLoginUrl(pathname)
-      return NextResponse.redirect(new URL(loginUrl, request.url))
-    }
-  }
+  //   if (!user) {
+  //     // Redirect to login with return URL
+  //     const loginUrl = authMiddleware.getLoginUrl(pathname)
+  //     return NextResponse.redirect(new URL(loginUrl, request.url))
+  //   }
+  // }
 
   return NextResponse.next()
 }

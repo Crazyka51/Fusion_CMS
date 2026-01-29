@@ -61,7 +61,7 @@ export function CategoriesPage() {
       sortable: true,
       render: (value, row: Category) => (
         <div className="flex items-center space-x-3">
-          <CategoryColorDot color={row.color} />
+          <CategoryColorDot color={row.color || '#808080'} />
           <div className="flex items-center space-x-2">
             {row.parentId ? (
               <FolderOpen className="h-4 w-4 text-muted-foreground" />

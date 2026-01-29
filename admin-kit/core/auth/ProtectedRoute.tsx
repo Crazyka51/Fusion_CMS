@@ -27,41 +27,48 @@ export function ProtectedRoute({
     )
   }
 
-  if (!user) {
-    if (showLogin) {
-      return <LoginForm />
-    }
+  // Authentication disabled - render children without login check
+  return children
 
-    if (Fallback) {
-      return <Fallback />
-    }
+  /*
+  Original ProtectedRoute with authentication:
 
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground">You need to be logged in to access this page.</p>
-        </div>
-      </div>
-    )
-  }
+    if (!user) {
+      if (showLogin) {
+        return <LoginForm />
+      }
 
-  // Check permissions
-  if (requiredPermissions.length > 0) {
-    const hasPermissions = requiredPermissions.every((permission) => user.permissions?.includes(permission))
+      if (Fallback) {
+        return <Fallback />
+      }
 
-    if (!hasPermissions) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Insufficient Permissions</h1>
-            <p className="text-muted-foreground">You don't have the required permissions to access this page.</p>
-            <p className="text-sm text-muted-foreground mt-2">Required: {requiredPermissions.join(", ")}</p>
+            <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+            <p className="text-muted-foreground">You need to be logged in to access this page.</p>
           </div>
         </div>
       )
     }
-  }
 
-  return <>{children}</>
+    // Check permissions
+    if (requiredPermissions.length > 0) {
+      const hasPermissions = requiredPermissions.every((permission) => user.permissions?.includes(permission))
+
+      if (!hasPermissions) {
+        return (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Insufficient Permissions</h1>
+              <p className="text-muted-foreground">You don't have the required permissions to access this page.</p>
+              <p className="text-sm text-muted-foreground mt-2">Required: {requiredPermissions.join(", ")}</p>
+            </div>
+          </div>
+        )
+      }
+    }
+
+    return children
+   */
 }
