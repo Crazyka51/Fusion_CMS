@@ -1,71 +1,171 @@
-// Model pro editovatelný obsah stránky
 import { PrismaClient } from '@prisma/client'
-import { prisma } from '../lib/db'
+
+const prisma = new PrismaClient()
 
 export class ObsahStrankyModel {
-  static async findByKey(klicObsahu: string) {
-    return await prisma.obsahStranky.findUnique({
-      where: { klicObsahu }
-    })
+  
+  static async getObsah(klic: string): Promise<string | null> {
+    try {
+      const obsah = await prisma.obsahStranky.findUnique({
+        where: {
+          klicObsahu: klic,
+          jeAktivni: true
+        }
+      })
+      return obsah?.obsah || null
+    } catch (error) {
+      console.error(`Chyba při načítání obsahu pro klíč "${klic}":`, error)
+      return null
+    }
+  }
+
+  static async getObsahPodleKategorie(kategorie: string): Promise<Array<{ klic: string; obsah: string; nazev?: string }>> {
+    try {
+      const obsahy = await prisma.obsahStranky.findMany({
+        where: {
+          kategorie,
+          jeAktivni: true
+        },
+        orderBy: {
+          poradoveId: 'asc'
+        }
+      })
+      
+      return obsahy.map((item: { klicObsahu: string; obsah: string; nazev: string | null }) => ({
+        klic: item.klicObsahu,
+        obsah: item.obsah,
+        nazev: item.nazev || undefined
+      }))
+    } catch (error) {
+      console.error(`Chyba při načítání obsahu pro kategorii "${kategorie}":`, error)
+      return []
+    }
+  }
+
+  // Legacy metody pro zpětnou kompatibilitu se stávajícím kódem
+  static async ziskatPodleKlice(klic: string) {
+    const obsah = await this.getObsah(klic)
+    return obsah ? { klic, hodnota: obsah, stranka: 'home' } : null
   }
 
   static async findByCategory(kategorie: string) {
-    return await prisma.obsahStranky.findMany({
-      where: { 
-        kategorie,
-        jeAktivni: true 
-      },
-      orderBy: { poradoveId: 'asc' }
-    })
+    const obsahy = await this.getObsahPodleKategorie(kategorie)
+    return obsahy.map(item => ({
+      klicObsahu: item.klic,
+      obsahText: item.obsah,
+      kategorie
+    }))
   }
 
-  static async create(data: {
-    klicObsahu: string
-    nazev: string
-    obsah: string
-    kategorie: string
-    popis?: string
-    typ?: string
-    jeAktivni?: boolean
-    poradoveId?: number
-  }) {
-    return await prisma.obsahStranky.create({
+  static async ziskatPodleStranky(stranka: string) {
+    const obsahy = await prisma.obsahStranky.findMany({
+      where: { jeAktivni: true },
+      orderBy: { klicObsahu: 'asc' }
+    })
+    return obsahy.map((item: { klicObsahu: string; obsah: string }) => ({
+      klic: item.klicObsahu,
+      hodnota: item.obsah,
+      stranka
+    }))
+  }
+
+  static async ziskatVsechny() {
+    const obsahy = await prisma.obsahStranky.findMany({
+      where: { jeAktivni: true },
+      orderBy: { klicObsahu: 'asc' }
+    })
+    return obsahy.map((item: { klicObsahu: string; obsah: string }) => ({
+      klic: item.klicObsahu,
+      hodnota: item.obsah,
+      stranka: 'home'
+    }))
+  }
+
+  static async vytvorit(data: { klic: string; hodnota: string; stranka?: string }) {
+    const created = await prisma.obsahStranky.create({
       data: {
-        ...data,
-        typ: data.typ || 'text',
-        jeAktivni: data.jeAktivni ?? true
+        klicObsahu: data.klic,
+        obsah: data.hodnota,
+        kategorie: 'general'
       }
     })
+    return { id: created.id, ...data }
   }
 
-  static async update(klicObsahu: string, data: Partial<{
-    nazev: string
-    obsah: string
-    kategorie: string
-    popis: string
-    typ: string
-    jeAktivni: boolean
-    poradoveId: number
-  }>) {
-    return await prisma.obsahStranky.update({
-      where: { klicObsahu },
-      data
+  static async aktualizovat(id: number, data: { hodnota: string }) {
+    await prisma.obsahStranky.update({
+      where: { id },
+      data: { obsah: data.hodnota }
     })
+    return { id, ...data }
+  }
+
+  static async aktualizovatHodnotu(klic: string, hodnota: string) {
+    await prisma.obsahStranky.upsert({
+      where: { klicObsahu: klic },
+      update: { obsah: hodnota },
+      create: {
+        klicObsahu: klic,
+        obsah: hodnota,
+        kategorie: 'general'
+      }
+    })
+    return { klic, hodnota }
+  }
+
+  static async smazat(id: number) {
+    await prisma.obsahStranky.delete({ where: { id } })
+    return { success: true, id }
+  }
+
+  static async create(data: { klicObsahu: string; obsahText?: string; nazev?: string; obsah?: string }) {
+    const hodnota = data.obsahText || data.obsah || data.nazev || ''
+    const created = await prisma.obsahStranky.create({
+      data: {
+        klicObsahu: data.klicObsahu,
+        obsah: hodnota,
+        kategorie: 'general',
+        nazev: data.nazev
+      }
+    })
+    return { id: created.id, klicObsahu: data.klicObsahu, obsahText: hodnota }
+  }
+
+  static async update(klicObsahu: string, data: any) {
+    const hodnota = data.obsahText || data.obsah || data.nazev || ''
+    await prisma.obsahStranky.upsert({
+      where: { klicObsahu },
+      update: { obsah: hodnota, nazev: data.nazev },
+      create: {
+        klicObsahu,
+        obsah: hodnota,
+        kategorie: 'general',
+        nazev: data.nazev
+      }
+    })
+    return { klicObsahu, ...data }
   }
 
   static async delete(klicObsahu: string) {
-    return await prisma.obsahStranky.delete({
+    await prisma.obsahStranky.deleteMany({
       where: { klicObsahu }
     })
+    return { success: true, klicObsahu }
   }
 
   static async findAll() {
-    return await prisma.obsahStranky.findMany({
+    const obsahy = await prisma.obsahStranky.findMany({
       where: { jeAktivni: true },
-      orderBy: [
-        { kategorie: 'asc' },
-        { poradoveId: 'asc' }
-      ]
+      orderBy: { klicObsahu: 'asc' }
     })
+    return obsahy.map((item: { klicObsahu: string; obsah: string; jeAktivni: boolean }) => ({
+      klicObsahu: item.klicObsahu,
+      obsahText: item.obsah,
+      jeAktivni: item.jeAktivni
+    }))
+  }
+
+  static async findMany() {
+    return this.findAll()
   }
 }

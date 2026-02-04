@@ -2,12 +2,14 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { DatabaseText } from '@/components/DatabaseText'
 
 interface SectionWithImageProps {
   nadpisKlic: string
   podnadpisKlic: string
-  textKlic1: string
+  textKlic?: string
+  textKlic1?: string
   textKlic2?: string
   tlacitkoKlic: string
   obrazekUrl: string
@@ -19,6 +21,7 @@ interface SectionWithImageProps {
 export function SectionWithImage({ 
   nadpisKlic,
   podnadpisKlic,
+  textKlic,
   textKlic1,
   textKlic2,
   tlacitkoKlic,
@@ -46,13 +49,13 @@ export function SectionWithImage({
               klic={podnadpisKlic}
               typ="popis"
               as="h3"
-              className="text-xl lg:text-2xl text-[#B8A876] mb-8 font-semibold tracking-[0.1em] uppercase"
+              className="text-xl lg:text-2xl text-[#B8A876] mb-8 font-semibold tracking-widest uppercase"
               placeholder="PRVOTŘÍDNÍ PÉČE O VAŠE VLASY"
             />
             
             <div className="space-y-6 text-lg lg:text-xl text-[#212121] leading-relaxed">
               <DatabaseText
-                klic={textKlic1}
+                klic={textKlic || textKlic1 || ''}
                 typ="text"
                 as="p"
                 className=""
@@ -70,19 +73,23 @@ export function SectionWithImage({
               )}
             </div>
             
-            <button className="bg-[#B8A876] hover:bg-[#A39566] text-[#212121] font-black py-4 px-8 transition-all duration-200 uppercase tracking-[0.1em] text-sm mt-8 rounded-none hover:scale-[1.02]">
+            <Link
+              href="/sluzby"
+              title="Více informací o službách"
+              className="inline-block bg-[#B8A876] hover:bg-[#A39566] text-[#212121] font-black py-4 px-8 transition-all duration-200 uppercase tracking-widest text-sm mt-8 rounded-none hover:scale-[1.02]"
+            >
               <DatabaseText
                 klic={tlacitkoKlic}
                 typ="tlacitko_text"
                 as="span"
                 placeholder="VÍCE INFORMACÍ"
               />
-            </button>
+            </Link>
           </div>
 
           {/* Obrázek */}
           <div className={`relative ${obrazekVpravo ? '' : 'lg:col-start-1'}`}>
-            <div className="aspect-[4/3] relative overflow-hidden rounded-lg">
+            <div className="aspect-4/3 relative overflow-hidden rounded-lg">
               <Image
                 src={obrazekUrl}
                 alt={obrazekAlt}

@@ -140,6 +140,7 @@ export default function OnlineRezervacePage() {
                 </label>
                 <select 
                   required
+                  title="Vyberte požadovanou službu"
                   value={formData.sluzba}
                   onChange={(e) => setFormData({...formData, sluzba: e.target.value})}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#B8A876]"
@@ -162,6 +163,7 @@ export default function OnlineRezervacePage() {
                   <input 
                     type="date" 
                     required
+                    title="Vyberte požadovaný datum rezervace"
                     value={formData.datum}
                     onChange={(e) => setFormData({...formData, datum: e.target.value})}
                     min={new Date().toISOString().split('T')[0]}
@@ -174,6 +176,7 @@ export default function OnlineRezervacePage() {
                   </label>
                   <select 
                     required
+                    title="Vyberte požadovaný čas rezervace"
                     value={formData.cas}
                     onChange={(e) => setFormData({...formData, cas: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#B8A876]"

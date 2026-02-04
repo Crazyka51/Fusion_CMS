@@ -16,23 +16,27 @@ export function DatabaseText({
   klic, 
   typ = 'text', 
   className = '', 
-  placeholder = 'Načítá se...',
+  placeholder = '',
   as = 'p'
 }: DatabaseTextProps) {
   const { obsah, nacitaSe, chyba } = useObsahPodleKlice(klic)
 
   if (nacitaSe) {
     const Component = as
-    return <Component className={`animate-pulse bg-gray-200 rounded ${className}`}>
-      {placeholder}
+    return <Component className={`bg-white/10 ${className}`}>
+      {/* Prázdný obsah během načítání - žádný placeholder */}
     </Component>
   }
 
   if (chyba || !obsah) {
-    const Component = as
-    return <Component className={`text-red-500 ${className}`}>
-      {chyba || `Obsah s klíčem "${klic}" nenalezen`}
-    </Component>
+    // Při chybě nebo nenalezení, použij placeholder pokud existuje, jinak prázdné
+    if (placeholder) {
+      const Component = as
+      return <Component className={className}>
+        {placeholder}
+      </Component>
+    }
+    return null
   }
 
   const Component = as

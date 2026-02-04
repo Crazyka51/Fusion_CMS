@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
     
     if (id) {
       // Aktualizace podle ID
-      aktualizovanyObsah = await ObsahStrankyModel.aktualizovat(id, data)
+      aktualizovanyObsah = await ObsahStrankyModel.aktualizovat(parseInt(id), { hodnota: data.hodnota || '' })
     } else if (klic) {
       // Rychlá aktualizace hodnoty podle klíče
       if (data.hodnota) {
@@ -129,7 +129,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    await ObsahStrankyModel.smazat(id)
+    await ObsahStrankyModel.smazat(parseInt(id))
 
     return NextResponse.json({
       uspech: true,

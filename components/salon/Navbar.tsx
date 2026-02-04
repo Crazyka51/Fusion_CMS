@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Navbar() {
   const [jeMobileMenuOtevrene, setJeMobileMenuOtevrene] = useState(false)
@@ -13,9 +14,16 @@ export function Navbar() {
         <div className="flex justify-between items-center h-20">
           
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-black text-[#212121] tracking-[0.1em] uppercase">
-              SALON ZUZA
+          <div className="shrink-0">
+            <Link href="/" className="flex items-center">
+              <Image 
+                src="/logo_salon.webp" 
+                alt="SALON ZUZA" 
+                width={150} 
+                height={60} 
+                className="h-12 w-auto"
+                priority
+              />
             </Link>
           </div>
 
@@ -23,22 +31,36 @@ export function Navbar() {
           <div className="hidden md:block">
             <div className="flex items-center space-x-1">
               <Link 
+                href="/" 
+                className="text-[#212121] hover:text-[#B8A876] px-4 py-2 text-sm font-semibold tracking-widest transition-colors duration-200 uppercase"
+              >
+                DOMŮ
+              </Link>
+              <span className="text-gray-300 text-lg">|</span>
+              <Link 
                 href="/sluzby" 
-                className="text-[#212121] hover:text-[#B8A876] px-4 py-2 text-sm font-semibold tracking-[0.1em] transition-colors duration-200 uppercase"
+                className="text-[#212121] hover:text-[#B8A876] px-4 py-2 text-sm font-semibold tracking-widest transition-colors duration-200 uppercase"
               >
                 SLUŽBY
               </Link>
               <span className="text-gray-300 text-lg">|</span>
               <Link 
                 href="/cenik" 
-                className="text-[#212121] hover:text-[#B8A876] px-4 py-2 text-sm font-semibold tracking-[0.1em] transition-colors duration-200 uppercase"
+                className="text-[#212121] hover:text-[#B8A876] px-4 py-2 text-sm font-semibold tracking-widest transition-colors duration-200 uppercase"
               >
                 CENÍK
               </Link>
               <span className="text-gray-300 text-lg">|</span>
               <Link 
+                href="/galerie" 
+                className="text-[#212121] hover:text-[#B8A876] px-4 py-2 text-sm font-semibold tracking-widest transition-colors duration-200 uppercase"
+              >
+                GALERIE
+              </Link>
+              <span className="text-gray-300 text-lg">|</span>
+              <Link 
                 href="/online-rezervace" 
-                className="bg-[#B8A876] hover:bg-[#A39566] text-[#212121] px-6 py-3 ml-6 text-sm font-black tracking-[0.1em] transition-all duration-200 uppercase rounded-none"
+                className="bg-[#B8A876] hover:bg-[#A39566] text-[#212121] px-6 py-3 ml-6 text-sm font-black tracking-widest transition-all duration-200 uppercase rounded-none"
               >
                 ONLINE REZERVACE
               </Link>
@@ -48,6 +70,7 @@ export function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
+              title="Otevřít/zavřít mobilní menu"
               onClick={() => setJeMobileMenuOtevrene(!jeMobileMenuOtevrene)}
               className="text-[#333333] hover:text-[#B8A876] inline-flex items-center justify-center p-2 rounded-md focus:outline-none"
             >
@@ -67,22 +90,36 @@ export function Navbar() {
           <div className="md:hidden">
             <div className="px-6 pt-4 pb-6 space-y-4 bg-white border-t border-gray-100">
               <Link 
+                href="/" 
+                className="text-[#212121] hover:text-[#B8A876] block py-3 text-base font-semibold tracking-widest uppercase transition-colors"
+                onClick={() => setJeMobileMenuOtevrene(false)}
+              >
+                DOMŮ
+              </Link>
+              <Link 
                 href="/sluzby" 
-                className="text-[#212121] hover:text-[#B8A876] block py-3 text-base font-semibold tracking-[0.1em] uppercase transition-colors"
+                className="text-[#212121] hover:text-[#B8A876] block py-3 text-base font-semibold tracking-widest uppercase transition-colors"
                 onClick={() => setJeMobileMenuOtevrene(false)}
               >
                 SLUŽBY
               </Link>
               <Link 
                 href="/cenik" 
-                className="text-[#212121] hover:text-[#B8A876] block py-3 text-base font-semibold tracking-[0.1em] uppercase transition-colors"
+                className="text-[#212121] hover:text-[#B8A876] block py-3 text-base font-semibold tracking-widest uppercase transition-colors"
                 onClick={() => setJeMobileMenuOtevrene(false)}
               >
                 CENÍK
               </Link>
               <Link 
+                href="/galerie" 
+                className="text-[#212121] hover:text-[#B8A876] block py-3 text-base font-semibold tracking-widest uppercase transition-colors"
+                onClick={() => setJeMobileMenuOtevrene(false)}
+              >
+                GALERIE
+              </Link>
+              <Link 
                 href="/online-rezervace" 
-                className="bg-[#B8A876] hover:bg-[#A39566] text-[#212121] block py-4 px-6 text-base font-black tracking-[0.1em] uppercase transition-all mt-4 text-center"
+                className="bg-[#B8A876] hover:bg-[#A39566] text-[#212121] block py-4 px-6 text-base font-black tracking-widest uppercase transition-all mt-4 text-center"
                 onClick={() => setJeMobileMenuOtevrene(false)}
               >
                 ONLINE REZERVACE

@@ -5,11 +5,11 @@ Tato složka obsahuje placeholder obrázky pro web salonu.
 ## Seznam potřebných obrázků:
 
 ### Hero sekce:
-- `/hero-salon.jpg` - Hlavní hero obrázek (1920x1080px)
+- `/logo_salon.png` - Hlavní hero obrázek (1920x1080px)
 
 ### Sekce služeb:
-- `/kvalita-framesi.jpg` - Obrázek pro sekci Kvalita (800x600px)
-- `/pece-vlasy.jpg` - Obrázek pro sekci Péče (800x600px)
+- `/pece-vlasy.webp` - Obrázek pro sekci Kvalita (800x600px)
+- `/imgssalon/pece-vlasy.webp` - Obrázek pro sekci Péče (800x600px)
 
 ### Galerie salonu:
 - `/salon-interior-1.jpg` až `/salon-interior-6.jpg` - Fotky interiéru salonu (600x600px)

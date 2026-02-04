@@ -1,80 +1,140 @@
-// Databázové schéma pro Salon Zuza portfolio
+// Databázové schéma pro Salon Zuza portfolio s Neon PostgreSQL
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Model pro editovatelný obsah stránky (CMS)
 model ObsahStranky {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  klicObsahu   String   @unique // např. "hero_title", "hero_subtitle" 
-  nazev        String   // Lidský název pro admin panel
-  obsah        String   // Samotný text/obsah
+  id           Int      @id @default(autoincrement())
+  klicObsahu   String   @unique @map("klic_obsahu") // např. "hero_title", "hero_subtitle" 
+  nazev        String?  // Lidský název pro admin panel
+  obsah        String   @db.Text // Samotný text/obsah
   typ          String   @default("text") // "text" | "html" | "markdown"
-  kategorie    String   // "hero" | "services" | "about" | "contact"
-  popis        String?  // Popis pro administrátory
-  jeAktivni    Boolean  @default(true)
-  poradoveId   Int?     // Pro řazení obsahu
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  kategorie    String   @default("general") // "hero" | "services" | "about" | "contact"
+  popis        String?  @db.Text // Popis pro administrátory
+  jeAktivni    Boolean  @default(true) @map("je_aktivni")
+  poradoveId   Int?     @map("poradove_id") // Pro řazení obsahu
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("obsah_stranky")
 }
 
+// Model pro kategorie služeb
+model KategorieSluzeb {
+  id          Int      @id @default(autoincrement())
+  nazev       String
+  popis       String?  @db.Text
+  poradi      Int      @default(0)
+  jeAktivni   Boolean  @default(true) @map("je_aktivni")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  sluzby      Sluzba[]
+
+  @@map("kategorie_sluzeb")
+}
+
 // Model pro služby salonu
 model Sluzba {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  nazev       String
-  popis       String
-  cena        Float
-  doba        Int      // v minutách
-  kategorie   String   // "damske" | "panske" | "barveni" | "kosmetika"
-  jeAktivni   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 Int              @id @default(autoincrement())
+  nazev              String
+  popis              String?          @db.Text
+  kategorieId        Int              @map("kategorie_id")
+  kategorie          KategorieSluzeb  @relation(fields: [kategorieId], references: [id])
+  dobaTrvaniMinuty   Int              @map("doba_trvani_minuty")
+  
+  // Ceny podle úrovně stylisty (JSON)
+  cenaTopStylist     Int              @map("cena_top_stylist")
+  cenaStylist        Int              @map("cena_stylist")
+  cenaJuniorStylist  Int?             @map("cena_junior_stylist")
+  
+  jeAktivni          Boolean          @default(true) @map("je_aktivni")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
 
   @@map("sluzby")
 }
 
+// Model pro galerii obrázků (alias pro Fotka)
+model GalerieObrazek {
+  id          Int      @id @default(autoincrement())
+  nazev       String
+  url         String
+  alt         String
+  popis       String?  @db.Text
+  kategorie   String   @default("general")
+  jeViditelna Boolean  @default(true) @map("je_viditelna")
+  poradi      Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("galerie_obrazky")
+}
+
 // Model pro fotogalerii
 model Fotka {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          Int      @id @default(autoincrement())
   nazev       String
-  popis       String?
+  popis       String?  @db.Text
   url         String
   kategorie   String   // "pred_po", "prace", "salon", "hero"
-  poradoveId  Int?
-  jeAktivni   Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  poradoveId  Int?     @map("poradove_id")
+  jeAktivni   Boolean  @default(true) @map("je_aktivni")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("fotky")
 }
 
 // Model pro recenze zákazníků
 model Recenze {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          Int      @id @default(autoincrement())
   jmeno       String
-  text        String
+  text        String   @db.Text
   hodnoceni   Int      // 1-5 hvězdiček
-  jeSchvalena Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  jeSchvalena Boolean  @default(false) @map("je_schvalena")
+  datum       DateTime @default(now())
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("recenze")
 }
 
+// Model pro zaměstnance (kadeřníky)
+model Zamestnanec {
+  id          Int      @id @default(autoincrement())
+  jmeno       String
+  prijmeni    String
+  uroven      String   // "top_stylist" | "stylist" | "junior_stylist"
+  email       String   @unique
+  telefon     String?
+  fotoUrl     String?  @map("foto_url")
+  rozvrh      Json?    // Rozvrh pracovních hodin
+  dnyVolna    String[] @default([]) @map("dny_volna")
+  jeAktivni   Boolean  @default(true) @map("je_aktivni")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("zamestnanci")
+}
+
 // Model pro kontaktní formulář
 model ZpravaKontaktu {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          Int      @id @default(autoincrement())
   jmeno       String
   email       String
   telefon     String?
-  zprava      String
-  jePrecetena Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  zprava      String   @db.Text
+  jePrecetena Boolean  @default(false) @map("je_precetena")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("zpravy_kontaktu")
 }

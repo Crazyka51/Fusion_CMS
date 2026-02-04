@@ -1,11 +1,14 @@
+"use client"
+
 // Hlavní landing page - Salon Zuza
+import Link from 'next/link'
 import { Navbar } from '@/components/salon/Navbar'
 import { HeroSection } from '@/components/salon/HeroSection'
 import { PartnerLogos } from '@/components/salon/PartnerLogos'
 import { SectionWithImage } from '@/components/salon/SectionWithImage'
 import { ReviewSection } from '@/components/salon/ReviewSection'
 import { CtaBanner } from '@/components/salon/CtaBanner'
-import { SalonGallery } from '@/components/salon/SalonGallery'
+import SalonGalerie from '@/components/salon/SalonGalerie'
 import { Footer } from '@/components/salon/Footer'
 
 export default function Home() {
@@ -16,7 +19,7 @@ export default function Home() {
       
       {/* Hero sekce */}
       <HeroSection 
-        backgroundImage="/hero-salon.jpg"
+        backgroundImage="/background_hero.webp"
       />
       
       {/* Partner loga */}
@@ -29,7 +32,7 @@ export default function Home() {
         textKlic1="kvalita_text1"
         textKlic2="kvalita_text2"
         tlacitkoKlic="kvalita_tlacitko"
-        obrazekUrl="/kvalita-framesi.jpg"
+        obrazekUrl="/pripravky.png"
         obrazekAlt="Kvalitní péče s produkty Framesi a Label.M"
         obrazekVpravo={true}
         className="bg-white"
@@ -42,7 +45,7 @@ export default function Home() {
         textKlic1="pece_text1"
         textKlic2="pece_text2"
         tlacitkoKlic="pece_tlacitko"
-        obrazekUrl="/pece-vlasy.jpg"
+        obrazekUrl="/pece-vlasy.webp"
         obrazekAlt="Zkušenosti a kvalita v péči o vlasy"
         obrazekVpravo={false}
         className="bg-[#F5F5F5]"
@@ -55,7 +58,7 @@ export default function Home() {
       <CtaBanner linkHref="/book-appointment" />
 
       {/* Galerie salonu */}
-      <SalonGallery />
+      <SalonGalerie />
 
       {/* Footer */}
       {/* Finální CTA sekce podle moderní analýzy */}
@@ -77,9 +80,13 @@ export default function Home() {
           <h3 className="text-2xl lg:text-3xl font-bold mb-12 tracking-wide uppercase">
             VYBERTE SI SVŮJ TERMÍN ONLINE
           </h3>
-          <button className="bg-[#B8A876] hover:bg-[#A39566] text-[#212121] font-black py-6 px-12 text-lg tracking-[0.1em] transition-all duration-300 transform hover:scale-[1.02] uppercase rounded-none">
+          <Link
+            href="/online-rezervace"
+            title="Rezervovat termín v salonu"
+            className="inline-block bg-[#B8A876] hover:bg-[#A39566] text-[#212121] font-black py-6 px-12 text-lg tracking-widest transition-all duration-300 transform hover:scale-[1.02] uppercase rounded-none"
+          >
             ✂️ REZERVOVAT TERMÍN
-          </button>
+          </Link>
         </div>
       </section>
 

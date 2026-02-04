@@ -1,0 +1,313 @@
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  console.log('🚀 Zahajuji inicializaci dat pro Salon Zuza...')
+
+  // Vytvoření služeb
+  console.log('📋 Vytvářím služby...')
+  
+  const sluzby = [
+    // Dámské služby
+    {
+      nazev: 'Dámský střih',
+      popis: 'Profesionální střih na míru podle přání klientky s konzultací a poradenstvím',
+      cena: 1200,
+      doba: 60,
+      kategorie: 'damske'
+    },
+    {
+      nazev: 'Dámský střih + foukaná',
+      popis: 'Střih včetně profesionálního vyfenování a stylingu',
+      cena: 1500,
+      doba: 90,
+      kategorie: 'damske'
+    },
+    {
+      nazev: 'Foukaná',
+      popis: 'Profesionální vyfenování a styling vlasů',
+      cena: 600,
+      doba: 45,
+      kategorie: 'damske'
+    },
+    {
+      nazev: 'Hluboko regenerační kúra',
+      popis: 'Intenzivní regenerace vlasů s profesionálními produkty',
+      cena: 800,
+      doba: 60,
+      kategorie: 'damske'
+    },
+
+    // Pánské služby
+    {
+      nazev: 'Pánský střih',
+      popis: 'Klasický nebo moderní pánský střih včetně stylingu',
+      cena: 800,
+      doba: 45,
+      kategorie: 'panske'
+    },
+    {
+      nazev: 'Holení břitvou',
+      popis: 'Tradiční holení s horkými ručníky a aftershave',
+      cena: 500,
+      doba: 30,
+      kategorie: 'panske'
+    },
+    {
+      nazev: 'Úprava vousů',
+      popis: 'Profesionální tvarování a úprava vousů',
+      cena: 400,
+      doba: 30,
+      kategorie: 'panske'
+    },
+
+    // Barvení
+    {
+      nazev: 'Barvení vlasů',
+      popis: 'Profesionální barvení kvalitními produkty',
+      cena: 2000,
+      doba: 120,
+      kategorie: 'barveni'
+    },
+    {
+      nazev: 'Melír',
+      popis: 'Částečné zesvětlení vlasů pro přirozený efekt',
+      cena: 2500,
+      doba: 150,
+      kategorie: 'barveni'
+    },
+    {
+      nazev: 'Odbarvení',
+      popis: 'Zesvětlení vlasů před barvením na světlejší odstín',
+      cena: 1800,
+      doba: 180,
+      kategorie: 'barveni'
+    },
+
+    // Kosmetika
+    {
+      nazev: 'Základní ošetření pleti',
+      popis: 'Kompletní čištění a ošetření obličeje',
+      cena: 1200,
+      doba: 90,
+      kategorie: 'kosmetika'
+    },
+    {
+      nazev: 'Hloubkové čištění pleti',
+      popis: 'Intenzivní ošetření s extrakcí a maskou',
+      cena: 1500,
+      doba: 120,
+      kategorie: 'kosmetika'
+    },
+    {
+      nazev: 'Anti-aging ošetření',
+      popis: 'Specializované ošetření proti stárnutí pleti',
+      cena: 1800,
+      doba: 120,
+      kategorie: 'kosmetika'
+    }
+  ]
+
+  for (const sluzba of sluzby) {
+    await prisma.sluzba.create({
+      data: sluzba
+    })
+  }
+
+  // Vytvoření obsahu stránek
+  console.log('📄 Vytvářím obsah stránek...')
+  
+  const obsahStranky = [
+    {
+      klicObsahu: 'hero_nadpis',
+      obsah: 'SALON ZUZA',
+      kategorie: 'hero',
+      nazev: 'Hlavní nadpis'
+    },
+    {
+      klicObsahu: 'hero_podnadpis', 
+      obsah: 'PROFESIONÁLNÍ KADEŘNICTVÍ & KOSMETIKA',
+      kategorie: 'hero',
+      nazev: 'Podnadpis'
+    },
+    {
+      klicObsahu: 'hero_popis',
+      obsah: 'Moderní salon krásy v srdci města s tradicí kvality a individuálního přístupu k péči o vlasy a pleť.',
+      kategorie: 'hero',
+      nazev: 'Popis v hero sekci'
+    },
+    {
+      klicObsahu: 'o_nas_nadpis',
+      obsah: 'O NAŠEM SALONU',
+      kategorie: 'o_nas',
+      nazev: 'Nadpis sekce O nás'
+    },
+    {
+      klicObsahu: 'o_nas_popis',
+      obsah: 'Salon Zuza je místo, kde se tradice setkává s moderními trendy. Naši zkušení kadeřníci a kosmetičky vám poskytnou služby nejvyšší kvality v příjemném prostředí.',
+      kategorie: 'o_nas',
+      nazev: 'Popis sekce O nás'
+    },
+    {
+      klicObsahu: 'sluzby_nadpis',
+      obsah: 'NAŠE SLUŽBY',
+      kategorie: 'sluzby',
+      nazev: 'Nadpis sekce Služby'
+    },
+    {
+      klicObsahu: 'sluzby_popis',
+      obsah: 'Nabízíme kompletní péči o vlasy a pleť pro dámy i pány. Od klasických střihů po moderní barvení a profesionální kosmetické ošetření.',
+      kategorie: 'sluzby',
+      nazev: 'Popis sekce Služby'
+    },
+    {
+      klicObsahu: 'kontakt_nadpis',
+      obsah: 'KONTAKT',
+      kategorie: 'kontakt',
+      nazev: 'Nadpis kontaktu'
+    },
+    {
+      klicObsahu: 'kontakt_adresa',
+      obsah: 'Hlavní třída 123\\nBrno 602 00',
+      kategorie: 'kontakt',
+      nazev: 'Adresa salonu'
+    },
+    {
+      klicObsahu: 'kontakt_telefon',
+      obsah: '+420 777 888 999',
+      kategorie: 'kontakt',
+      nazev: 'Telefonní číslo'
+    },
+    {
+      klicObsahu: 'kontakt_email',
+      obsah: 'info@salon-zuza.cz',
+      kategorie: 'kontakt',
+      nazev: 'Email'
+    },
+    {
+      klicObsahu: 'oteviraci_doba_po_pa',
+      obsah: 'Po - Pá: 8:00 - 18:00',
+      kategorie: 'oteviraci_doba',
+      nazev: 'Otevírací doba v týdnu'
+    },
+    {
+      klicObsahu: 'oteviraci_doba_so',
+      obsah: 'So: 9:00 - 15:00',
+      kategorie: 'oteviraci_doba',
+      nazev: 'Otevírací doba sobota'
+    },
+    {
+      klicObsahu: 'oteviraci_doba_ne',
+      obsah: 'Ne: zavřeno',
+      kategorie: 'oteviraci_doba',
+      nazev: 'Otevírací doba neděle'
+    }
+  ]
+
+  for (const obsah of obsahStranky) {
+    await prisma.obsahStranky.create({
+      data: obsah
+    })
+  }
+
+  // Vytvoření galerie obrázků
+  console.log('🖼️ Vytvářím galerii...')
+  
+  const galerieObrazky = [
+    {
+      nazev: 'Moderní interiér salonu',
+      url: '/images/salon-interior-1.jpg',
+      alt: 'Moderní a stylový interiér Salon Zuza',
+      kategorie: 'interiér'
+    },
+    {
+      nazev: 'Pracovní místo kadeřníka',
+      url: '/images/salon-workplace.jpg', 
+      alt: 'Profesionální pracovní místo s moderním vybavením',
+      kategorie: 'interiér'
+    },
+    {
+      nazev: 'Dámský střih - před a po',
+      url: '/images/damsky-strih-1.jpg',
+      alt: 'Ukázka práce - dámský střih před a po',
+      kategorie: 'prace'
+    },
+    {
+      nazev: 'Barvení vlasů',
+      url: '/images/barveni-1.jpg',
+      alt: 'Profesionální barvení vlasů',
+      kategorie: 'prace'
+    },
+    {
+      nazev: 'Kosmetické ošetření',
+      url: '/images/kosmetika-1.jpg',
+      alt: 'Relaxační kosmetické ošetření',
+      kategorie: 'prace'
+    }
+  ]
+
+  for (const obrazek of galerieObrazky) {
+    await prisma.galerieObrazek.create({
+      data: obrazek
+    })
+  }
+
+  // Vytvoření recenzí
+  console.log('⭐ Vytvářím recenze...')
+  
+  const recenze = [
+    {
+      jmeno: 'Anna K.',
+      hodnoceni: 5,
+      text: 'Úžasný salon! Kadeřnice věděla přesně, co s mými vlasy. Rezultát předčil má očekávání.',
+      datum: new Date('2024-01-15')
+    },
+    {
+      jmeno: 'Petr M.',
+      hodnoceni: 5,
+      text: 'Konečně salon, kde rozumí i pánským střihům. Rychle, kvalitně a za rozumnou cenu.',
+      datum: new Date('2024-01-10')
+    },
+    {
+      jmeno: 'Marie S.',
+      hodnoceni: 5,
+      text: 'Kosmetické ošetření bylo fantastické. Pleť měkká a zářivá. Určitě se vrátím!',
+      datum: new Date('2024-01-08')
+    },
+    {
+      jmeno: 'Lukáš D.',
+      hodnoceni: 4,
+      text: 'Profesionální přístup, příjemné prostředí. Jedině bych ocenil delší otevírací dobu.',
+      datum: new Date('2024-01-05')
+    },
+    {
+      jmeno: 'Tereza B.',
+      hodnoceni: 5,
+      text: 'Nejlepší barvení, jaké jsem kdy měla! Barva drží dlouho a vlasy zůstaly zdravé.',
+      datum: new Date('2024-01-03')
+    }
+  ]
+
+  for (const recenzeData of recenze) {
+    await prisma.recenze.create({
+      data: recenzeData
+    })
+  }
+
+  console.log('✅ Inicializace dat úspěšně dokončena!')
+  console.log(`✨ Vytvořeno:`)
+  console.log(`   - ${sluzby.length} služeb`)
+  console.log(`   - ${obsahStranky.length} obsahových prvků`)
+  console.log(`   - ${galerieObrazky.length} obrázků do galerie`)
+  console.log(`   - ${recenze.length} recenzí`)
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Chyba při inicializaci dat:', e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })

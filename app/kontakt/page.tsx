@@ -1,6 +1,20 @@
 // Stránka kontaktu podle skutečného webu
 import { Navbar } from '@/components/salon/Navbar'
 import { Footer } from '@/components/salon/Footer'
+import dynamic from 'next/dynamic'
+
+// Dynamicky načíst SalonMapa komponentu (kvůli SSR problémům s Leaflet)
+const SalonMapa = dynamic(() => import('@/components/salon/SalonMapa').then(mod => mod.default), { 
+  ssr: false,
+  loading: () => (
+    <div className="bg-gray-200 h-64 rounded-lg flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B8A876] mx-auto mb-2"></div>
+        <p className="text-gray-600">Načítání mapy...</p>
+      </div>
+    </div>
+  )
+})
 
 export default function KontaktPage() {
   return (
@@ -134,18 +148,10 @@ export default function KontaktPage() {
 
             {/* Mapa a kontaktní formulář */}
             <div className="space-y-8">
-              {/* Mapa placeholder */}
+              {/* Interaktivní mapa */}
               <div>
                 <h3 className="text-2xl font-bold text-[#333333] mb-6">Kde nás najdete</h3>
-                <div className="bg-gray-200 h-64 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                    <p className="text-gray-600">Google Maps</p>
-                    <p className="text-sm text-gray-500">Náměstí Míru 15, Praha 2</p>
-                  </div>
-                </div>
+                <SalonMapa height="400px" className="border border-gray-300" />
               </div>
 
               {/* Kontaktní formulář */}
